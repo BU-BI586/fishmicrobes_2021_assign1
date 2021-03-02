@@ -1,19 +1,29 @@
 ---
 title: "Clownfish Skin Microbiome"
 author: "Victoria French, Grace Beery & Madison Pacaro"
-date: "March 2, 2021"
+date: "March 9, 2021"
 output: html_document
 ---
 
 # Introduction
 
+
+
 # Version Control
+
+
 
 # Data Analysis/Methods
 
+
+
 # Figures
 
+
+
 # Reference Database
+
+
 
 # Conclusion
 
