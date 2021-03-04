@@ -7,6 +7,7 @@ library(phyloseq); #packageVersion("phyloseq")
 
 getwd()
 path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1" 
+path <- "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1"
 fns <- list.files(path)
 #Let's make sure that all of our files are there
 fns
