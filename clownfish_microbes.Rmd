@@ -1,15 +1,13 @@
 ---
-title: "Clownfish Skin Microbiome"
+title: "Association with a sea anemone alters the skin microbiome of clownfish"
 author: "Victoria French, Grace Beery & Madison Pacaro"
 date: "March 9, 2021"
 output: html_document
 ---
 
+R version 4.0.3 was used for all analyses.
+
 # Introduction
-
-
-
-# Version Control
 
 
 
