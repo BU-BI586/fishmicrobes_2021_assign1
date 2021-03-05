@@ -50,12 +50,19 @@ fns
 
 fastqs <- fns[grepl(".fastq$", fns)]
 fastqs <- sort(fastqs) # Sort ensures reads are in same order
+fastqsR1 <- fastqs[grepl("_1", fastqs)] # Just the forward read files
+fastqsR2 <- fastqs[grepl("_2", fastqs)] # Just reverse read files 
 
 sample.names <- sapply(strsplit(fastqs, ".fastq"), `[`, 1) #the last number will select the field for renaming
 sample.names
 # Specify the full path to each fastq file
 fnFs <- file.path(path, fastqs)
-fnFs
+fnFsR1 <- file.path(path, fastqsR1)
+fnFsR2 <- file.path(path, fastqsR2)
+
+fnFs 
+fnFsR1
+fnFsR2
 
 plotQualityProfile(fnFs[c(1,2,3,4,5,6,7,8,9)])
 plotQualityProfile(fnFs[c(10,11,12,13,14,15,16,17,18)])
@@ -68,16 +75,27 @@ filtFs <- file.path(filt_path, paste0(sample.names, "_F_filt.fastq.gz"))
 
 #edit these numbers
 #change trim to match primer for our study
-out <- filterAndTrim(fnFs, filtFs, truncLen= 300, #change this, should be less than 300
+outR1 <- filterAndTrim(fnFsR1, filtFsR1, truncLen= 250, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. 
                      maxN=0, #DADA does not allow Ns
                      maxEE=1, #allow 1 expected errors, where EE = sum(10^(-Q/10)); more conservative, model converges
                      truncQ=2, 
-                     trimLeft=20, #N nucleotides to remove from the start of each read: ITS2 primer = F 20bp
+                     trimLeft=19, #N nucleotides to remove from the start of each read: 16S V4 region 515 F = 19
                      rm.phix=TRUE, #remove reads matching phiX genome
                      compress=TRUE, multithread=FALSE) # On Windows set multithread=FALSE
 
-head(out)
-tail(out)
+head(outR1)
+tail(outR1)
+
+outR2 <- filterAndTrim(fnFsR2, filtFsR2, truncLen= 250, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. 
+                       maxN=0, #DADA does not allow Ns
+                       maxEE=1, #allow 1 expected errors, where EE = sum(10^(-Q/10)); more conservative, model converges
+                       truncQ=2, 
+                       trimLeft=20, #N nucleotides to remove from the start of each read: 16S V4 region 806 R = 20
+                       rm.phix=TRUE, #remove reads matching phiX genome
+                       compress=TRUE, multithread=FALSE) # On Windows set multithread=FALSE
+
+head(outR1)
+tail(outR1)
 
 setDadaOpt(MAX_CONSIST=30) #usually keep 30, increase number of cycles to allow convergence
 errF <- learnErrors(filtFs, multithread=TRUE)
