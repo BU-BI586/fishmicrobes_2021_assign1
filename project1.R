@@ -1,15 +1,49 @@
-install.packages("cutadapt")
+#####Install####
+##if (!requireNamespace("BiocManager", quietly = TRUE))
+#install.packages("BiocManager")
+#BiocManager::install(version = "3.12")
+###install packages######
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#install.packages("BiocManager")
+#BiocManager::install()
+####
 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+  BiocManager::install(version = "3.12")
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+    BiocManager::install("dada2")  
+    
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+    BiocManager::install("ShortRead") 
+    
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+    BiocManager::install("ggplot2") 
+    
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+    BiocManager::install("phyloseq") 
+    
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+    BiocManager::install("cutadapt") 
+  
 library(dada2); #packageVersion("dada2"); citation("dada2")
 library(ShortRead); #packageVersion("ShortRead")
 library(ggplot2); #packageVersion("ggplot2")
 library(phyloseq); #packageVersion("phyloseq")
+library(cutadapt); #packageVersion("cutadapt")
 
 getwd()
 #setwd("C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles")
 
-path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1" 
+#path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1" 
 #path <- "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles"
+path <- "/usr4/bi594/vfrench3/assignment1/fishmicrobes_2021_assign1/fastqfiles"
 fns <- list.files(path)
 #Let's make sure that all of our files are there
 fns
@@ -19,9 +53,10 @@ fastqs <- sort(fastqs) # Sort ensures reads are in same order
 
 sample.names <- sapply(strsplit(fastqs, ".fastq"), `[`, 1) #the last number will select the field for renaming
 sample.names
-# Specify the full path to the fnFs
+# Specify the full path to each fastq file
 fnFs <- file.path(path, fastqs)
 fnFs
+
 plotQualityProfile(fnFs[c(1,2,3,4,5,6,7,8,9)])
 plotQualityProfile(fnFs[c(10,11,12,13,14,15,16,17,18)])
 plotQualityProfile(fnFs[c(19,20,21,22,23,24,25,26,27)])
