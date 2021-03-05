@@ -28,9 +28,9 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
     BiocManager::install("phyloseq") 
     
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-    BiocManager::install("cutadapt") 
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+    #BiocManager::install("cutadapt") 
   
 library(dada2); #packageVersion("dada2"); citation("dada2")
 library(ShortRead); #packageVersion("ShortRead")
@@ -92,28 +92,37 @@ tail(out)
 
 setDadaOpt(MAX_CONSIST=30) #usually keep 30, increase number of cycles to allow convergence
 errF <- learnErrors(filtFs, multithread=TRUE)
+errR <- learnErrors(filtRs, multithread=TRUE)
 
 plotErrors(errF, nominalQ=TRUE) #plotting error rates, want to see mostly linear relationships
+plotErrors(errR, nominalQ=TRUE)
 
 #dereplicating reads - collapsing all reads into unique sequences
 derepFs <- derepFastq(filtFs, verbose=TRUE)
+derepRs <- derepFastq(filtRs, verbose=TRUE)
 # Name the derep-class objects by the sample names
-names(derepFs) <- sample.names
+names.F(derepFs) <- sample.names.F
+names.R(deprepRs) <- sample.names.R
 
 #infer sequence variants 
 #Must change some of the DADA options b/c original program optomized for ribosomal data, not ITS - from github, "We currently recommend BAND_SIZE=32 for ITS data." leave as default for 16S/18S
 setDadaOpt(BAND_SIZE=16) #Default is 16 for Illumina (low rates of indels) according to documentation 
 dadaFs <- dada(derepFs, err=errF, multithread=TRUE)
+dadaRs <- dada(derepRs, err=errR, multithread=TRUE)
 
 #now, look at the dada class objects by sample
 #will tell how many 'real' variants in unique input seqs
 #By default, the dada function processes each sample independently, but pooled processing is available with pool=TRUE and that may give better results for low sampling depths at the cost of increased computation time. See our discussion about pooling samples for sample inference. 
-dadaFs[[1]]
-dadaFs[[25]]
+dadaFs[[1:18]]
+dadaRs[[1:18]]
+
+#merge paired ends 
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+head(mergers[[1]])
 
 #construct sequence table
-seqtab <- makeSequenceTable(dadaFs)
-head(seqtab)
+seqtab <- makeSequenceTable(mergers)
+head(mergers)
 
 #remove chimeras
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
@@ -142,6 +151,5 @@ write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FA
 ################################
 ##### Assign Taxonomy #######
 ################################
-
 
 
