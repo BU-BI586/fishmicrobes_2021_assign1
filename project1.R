@@ -36,7 +36,6 @@ library(dada2); #packageVersion("dada2"); citation("dada2")
 library(ShortRead); #packageVersion("ShortRead")
 library(ggplot2); #packageVersion("ggplot2")
 library(phyloseq); #packageVersion("phyloseq")
-library(cutadapt); #packageVersion("cutadapt")
 
 getwd()
 #setwd("C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles")
@@ -50,19 +49,14 @@ fns
 
 fastqs <- fns[grepl(".fastq$", fns)]
 fastqs <- sort(fastqs) # Sort ensures reads are in same order
-fastqsR1 <- fastqs[grepl("_1", fastqs)] # Just the forward read files
-fastqsR2 <- fastqs[grepl("_2", fastqs)] # Just reverse read files 
 
 sample.names <- sapply(strsplit(fastqs, ".fastq"), `[`, 1) #the last number will select the field for renaming
 sample.names
+
 # Specify the full path to each fastq file
 fnFs <- file.path(path, fastqs)
-fnFsR1 <- file.path(path, fastqsR1)
-fnFsR2 <- file.path(path, fastqsR2)
 
 fnFs 
-fnFsR1
-fnFsR2
 
 plotQualityProfile(fnFs[c(1,2,3,4,5,6,7,8,9)])
 plotQualityProfile(fnFs[c(10,11,12,13,14,15,16,17,18)])
@@ -75,27 +69,16 @@ filtFs <- file.path(filt_path, paste0(sample.names, "_F_filt.fastq.gz"))
 
 #edit these numbers
 #change trim to match primer for our study
-outR1 <- filterAndTrim(fnFsR1, filtFsR1, truncLen= 250, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. 
+out <- filterAndTrim(fnFs, filtFs, truncLen= 250, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. 
                      maxN=0, #DADA does not allow Ns
                      maxEE=1, #allow 1 expected errors, where EE = sum(10^(-Q/10)); more conservative, model converges
                      truncQ=2, 
-                     trimLeft=19, #N nucleotides to remove from the start of each read: 16S V4 region 515 F = 19
+                     trimLeft=19, #N nucleotides to remove from the start of each read: 16S (microbial community barcoding region) V4 region (used in paper even though V2-V3 higher resolution and species level identification; https://doi.org/10.1038/sdata.2019.7) forward primer 515 F = 19
                      rm.phix=TRUE, #remove reads matching phiX genome
                      compress=TRUE, multithread=FALSE) # On Windows set multithread=FALSE
 
-head(outR1)
-tail(outR1)
-
-outR2 <- filterAndTrim(fnFsR2, filtFsR2, truncLen= 250, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. 
-                       maxN=0, #DADA does not allow Ns
-                       maxEE=1, #allow 1 expected errors, where EE = sum(10^(-Q/10)); more conservative, model converges
-                       truncQ=2, 
-                       trimLeft=20, #N nucleotides to remove from the start of each read: 16S V4 region 806 R = 20
-                       rm.phix=TRUE, #remove reads matching phiX genome
-                       compress=TRUE, multithread=FALSE) # On Windows set multithread=FALSE
-
-head(outR1)
-tail(outR1)
+head(out)
+tail(out)
 
 setDadaOpt(MAX_CONSIST=30) #usually keep 30, increase number of cycles to allow convergence
 errF <- learnErrors(filtFs, multithread=TRUE)
@@ -109,7 +92,7 @@ names(derepFs) <- sample.names
 
 #infer sequence variants 
 #Must change some of the DADA options b/c original program optomized for ribosomal data, not ITS - from github, "We currently recommend BAND_SIZE=32 for ITS data." leave as default for 16S/18S
-setDadaOpt(BAND_SIZE=32)
+setDadaOpt(BAND_SIZE=16) #Default is 16 for Illumina (low rates of indels) according to documentation 
 dadaFs <- dada(derepFs, err=errF, multithread=TRUE)
 
 #now, look at the dada class objects by sample
