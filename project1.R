@@ -49,33 +49,43 @@ fns
 
 fastqs <- fns[grepl(".fastq$", fns)]
 fastqs <- sort(fastqs) # Sort ensures reads are in same order
+fnFs <- fastqs[grepl("_1", fastqs)]
+fnRs <- fastqs[grepl("_2", fastqs)]
 
-sample.names <- sapply(strsplit(fastqs, ".fastq"), `[`, 1) #the last number will select the field for renaming
-sample.names
+sample.names.F <- sapply(strsplit(fnFs, ".fastq"), `[`, 1) #the last number will select the field for renaming
+sample.names.R <- sapply(strsplit(fnRs, ".fastq"), `[`, 1) #the last number will select the field for renaming
+sample.names.F
+sample.names.R
 
 # Specify the full path to each fastq file
-fnFs <- file.path(path, fastqs)
+fnFs <- file.path(path, fnFs)
+fnRs <- file.path(path, fnRs)
+fnFs
+fnRs
 
-fnFs 
-
-plotQualityProfile(fnFs[c(1,2,3,4,5,6,7,8,9)])
-plotQualityProfile(fnFs[c(10,11,12,13,14,15,16,17,18)])
-plotQualityProfile(fnFs[c(19,20,21,22,23,24,25,26,27)])
-plotQualityProfile(fnFs[c(28,29,30,31,32,33,34,35,36)])
+plotQualityProfile(fnFs[1:9])
+plotQualityProfile(fnFs[10:18])
+plotQualityProfile(fnRs[1:9])
+plotQualityProfile(fnRs[10:18])
 
 filt_path <- file.path(path, "trimmed")
 if(!file_test("-d", filt_path)) dir.create(filt_path)
-filtFs <- file.path(filt_path, paste0(sample.names, "_F_filt.fastq.gz"))
+filtFs <- file.path(filt_path, "filteredF", paste0(sample.names.F, "_F_filt.fastq.gz"))
+filtRs <- file.path(filt_path, "filteredR", paste0(sample.names.R, "_R_filt.fastq.gz"))
 
 #edit these numbers
 #change trim to match primer for our study
-out <- filterAndTrim(fnFs, filtFs, truncLen= 250, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. 
+out<- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=250, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. 
                      maxN=0, #DADA does not allow Ns
                      maxEE=1, #allow 1 expected errors, where EE = sum(10^(-Q/10)); more conservative, model converges
                      truncQ=2, 
                      trimLeft=19, #N nucleotides to remove from the start of each read: 16S (microbial community barcoding region) V4 region (used in paper even though V2-V3 higher resolution and species level identification; https://doi.org/10.1038/sdata.2019.7) forward primer 515 F = 19
                      rm.phix=TRUE, #remove reads matching phiX genome
                      compress=TRUE, multithread=FALSE) # On Windows set multithread=FALSE
+
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=250,
+                     maxN=0, maxEE=1, truncQ=2, rm.phix=TRUE,
+                     compress=TRUE, multithread=TRUE)
 
 head(out)
 tail(out)
