@@ -152,4 +152,69 @@ write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FA
 ##### Assign Taxonomy #######
 ################################
 
+#assigning ASVs in seqtab.nochim to taxonomy via Silva v132 (most recent version); Silva primary database for 16S 
+taxa <- assignTaxonomy(seqtab.nochim,'fastqfiles/silva_nr_v132_train_set.fa.gz',minBoot=50,multithread=TRUE,tryRC=TRUE,outputBootstraps=FALSE)
+taxa <- addSpecies(taxa,'fastqfiles/silva_species_assignment_v132.fa.gz') #species level assignments  
 
+#write taxa to csv file 
+write.csv(taxa, file="taxa.csv",row.name=TRUE,quote=FALSE)
+unname(head(taxa, 30))
+unname(taxa)
+
+#save reads from sequence table for future analysis 
+saveRDS(seqtab.nochim, file="final_seqtab_nochim.rds")
+saveRDS(taxa, file="final_taxa_blastCorrected.rds")
+
+#Visualization (phyloseq)
+
+#Construct sample dataframe 
+
+samples.out <- rownames(seqtab.nochim)
+subject <- sapply(strsplit(samples.out, "D"), `[`, 1)
+gender <- substr(subject,1,1)
+subject <- substr(subject,2,999)
+day <- as.integer(sapply(strsplit(samples.out, "D"), `[`, 2))
+samdf <- data.frame(Subject=subject, Gender=gender, Day=day)
+samdf$When <- "Early"
+samdf$When[samdf$Day>100] <- "Late"
+rownames(samdf) <- samples.out
+
+# Construct phyloseq object (straightforward from dada2 outputs)
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               sample_data(samdf), 
+               tax_table(taxa))
+ps
+
+#replace sequences with shorter names (correspondence table output below)
+ids<-taxa_names(ps)
+ids <- paste0("sq",seq(1, length(colnames(seqtab.nochim))))
+colnames(seqtab.nochim) <- ids
+
+#Bar-plots
+top90 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:90]
+ps.top90 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top90 <- prune_taxa(top90, ps.top90)
+
+plot_bar(ps.top90, x="Sample", fill="Class") 
+
+#visusalize via counts rather than abundances:
+plot_bar(ps, x = "sample", fill= "Class") #+ facet_wrap("tank")
+#
+#Obtain a csv file for the phyloseq data. Will give you the abundances for each sample and class. Useful for constructing the heatmap. Also, enables you to use ggplot, and construct more aesthetically pleasing plot.
+psz <- psmelt(ps.top90)
+write.csv(psz, file="Phyloseqoutputfinal.csv")
+p <- ggplot(psz, aes(x=Sample, y=Abundance, fill=Class))
+p + geom_bar(stat="identity", colour="black")
+
+#Plot alpha-diversity 
+plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="When")
+
+#Bray Curtis 
+#Transform to proportions 
+ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
+#Plot 
+plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
+
+
+                      
