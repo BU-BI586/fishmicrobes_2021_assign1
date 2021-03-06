@@ -155,6 +155,7 @@ taxa <- addSpecies(taxa, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assig
 taxa.print <- taxa
 rownames(taxa.print) <- NULL
 head(taxa.print)
+#should we use minboot, multithread, etc in line 153??
 
 
 #Obtain a csv file for the taxonomy so that it's easier to map the sequences for the heatmap.
@@ -178,16 +179,27 @@ head(taxa)
 #import dataframe holding sample information
 #have your samples in the same order as the seqtab file in the rows, variables as columns
 samdf<-read.csv("variabletable.csv")
+
 head(samdf)
 head(seqtab.nochim)
 head(taxa)
-rownames(samdf) <- samdf$sample
+rownames(samdf) <- samdf$Sample
 
 # Construct phyloseq object (straightforward from dada2 outputs)
-ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
-               sample_data(samdf), 
+otu <- otu_table(seqtab.nochim, taxa_are_rows=FALSE)
+head(otu)
+samp_data = sample_data(samdf)
+head(samp_data)
+tax_tab = tax_table(taxa)
+head(tax_tab)
+ps <- phyloseq(otu, 
+               samp_data,
                tax_table(taxa))
+
+head(tax_table(taxa))
+View()
 ps
+sample_names()
 
 #replace sequences with shorter names (correspondence table output below)
 ids<-taxa_names(ps)
