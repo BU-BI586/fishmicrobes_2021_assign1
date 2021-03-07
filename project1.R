@@ -42,11 +42,13 @@ packageVersion("phyloseq")
 
 getwd()
 #setwd("C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles")
+
 #setting path to directory containing our fasstq files
 
 path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1" 
 path <- "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles"
 path <- "/usr4/bi594/vfrench3/assignment1/fishmicrobes_2021_assign1/fastqfiles"
+path <- "/Users/Victoria1/Desktop/Grad School/Eco Gen./fishmicrobes_2021_assignment1/fastqfiles"
 fns <- list.files(path)
 fns
 
@@ -58,7 +60,7 @@ fnFs <- fastqs[grepl("_1", fastqs)] #assigning forward reads to variable
 fnRs <- fastqs[grepl("_2", fastqs)] #assigning reverse reads to variable 
 
 
-#removing .fastq on each on the file names?
+#removing .fastq on each on the file names
 # these caused an error because we do not need specific sample.names for both forward and backward, because they're all the same set of samples
 # sample.names.F <- sapply(strsplit(fnFs, ".fastq"), `[`, 1) #the last number will select the field for renaming
 # sample.names.R <- sapply(strsplit(fnRs, ".fastq"), `[`, 1) #the last number will select the field for renaming
@@ -66,7 +68,7 @@ fnRs <- fastqs[grepl("_2", fastqs)] #assigning reverse reads to variable
 # sample.names.R
 sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 sample.names
-#sample.names just need for forward reads????
+
 
 
 # Specify the full path to each fastq file
@@ -83,10 +85,10 @@ plotQualityProfile(fnRs[1:9])
 plotQualityProfile(fnRs[10:18])
 
 #placing trimmed and filtered files in a subdirectory
-filt_path <- file.path(path, "trimmed")
-if(!file_test("-d", filt_path)) dir.create(filt_path)
-filtFs <- file.path(filt_path, "filteredF", paste0(sample.names, "_F_filt.fastq.gz"))
-filtRs <- file.path(filt_path, "filteredR", paste0(sample.names.R, "_R_filt.fastq.gz"))
+filt_path <- file.path(path, "trimmed") #assigning new trimmed folder to a variable 
+if(!file_test("-d", filt_path)) dir.create(filt_path)  #creating trimmed directory 
+filtFs <- file.path(filt_path, "filteredF", paste0(sample.names, "_F_filt.fastq.gz")) #assigning new trimmed forward reads to variable 
+filtRs <- file.path(filt_path, "filteredR", paste0(sample.names.R, "_R_filt.fastq.gz")) #assigning new timmed reverse reads to variable
 #above code might be wrong
 
 #think there is an issue here with using sample.names.F/R?
@@ -98,19 +100,16 @@ names(filtRs) <- sample.names
 
 
 #setting standard filtering parameters for maxN, truncQ=2, rm.phix=TRUE 
-#we set trunclen to be____ because
-out<- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=240, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. Maybe we should do 240 like James said???
-                    maxN=0, #DADA does not allow Ns
-                    maxEE=1, #allow 1 expected errors, where EE = sum(10^(-Q/10)); more conservative, model converges
-                    truncQ=2, 
-                    trimLeft=19, #N nucleotides to remove from the start of each read: 16S (microbial community barcoding region) V4 region (used in paper even though V2-V3 higher resolution and species level identification; https://doi.org/10.1038/sdata.2019.7) forward primer 515 F = 19
-                    rm.phix=TRUE, #remove reads matching phiX genome
-                    compress=TRUE, multithread=FALSE) # On Windows set multithread=FALSE
-
-#for mac?
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=250,
-                     maxN=0, maxEE=1, truncQ=2, rm.phix=TRUE,
-                     compress=TRUE, multithread=TRUE)
+#we set trunclen to be____ because most samples have consistently high quality reads but a few start to taper around cycle 100; 
+#Since both forward and reverse reads, lowest Trunclen could be 125. Dropping too many reads at 125 
+#Trimleft excluded as raw sequences from NCBI contain no primer sequences. Sequences used were: 
+#515F ('GTGYCAGCMGCCGCGGTAA') and 806R ('GGACTACNVGGGTWTCTAAT') for the 16S V4 region according to earth microbiome project. 
+out<- filterAndTrim(fnFs, filtFs, fnRs, filtRs, 
+                    maxN=0, 
+                    maxEE=1, 
+                    truncQ=2,  
+                    rm.phix=TRUE, 
+                    compress=TRUE, multithread=FALSE) 
 
 #messed something up at this point code not working
 
