@@ -192,7 +192,11 @@ write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FA
 ################################
 
 
-#using default minboot of 50?
+#assigning ASVs in seqtab.nochim to taxonomy via Silva v132 (most recent version); Silva primary database for 16S 
+# taxa <- assignTaxonomy(seqtab.nochim,'fastqfiles/silva_nr_v132_train_set.fa.gz',minBoot=50,multithread=TRUE,tryRC=TRUE,outputBootstraps=FALSE)
+# taxa <- addSpecies(taxa,'fastqfiles/silva_species_assignment_v132.fa.gz') #species level assignments  
+
+#write taxa to csv file 
 taxa <- assignTaxonomy(seqtab.nochim, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_nr99_v138_train_set.fa.gz", multithread=TRUE)
 taxa <- addSpecies(taxa, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_species_assignment_v138.fa.gz")
 taxa.print <- taxa
@@ -202,9 +206,11 @@ head(taxa.print) #this just prints taxonomy
 
 
 #Obtain a csv file for the taxonomy so that it's easier to map the sequences for the heatmap.
+
 write.csv(taxa, file="taxa.csv",row.name=TRUE,quote=FALSE)
 unname(head(taxa, 30))
 unname(taxa)
+
 
 #Now, save outputs so can come back to the analysis stage at a later point if desired
 saveRDS(seqtab.nochim, file="final_seqtab_nochim.rds")
@@ -229,7 +235,7 @@ head(otu_table(seqtab.nochim, FALSE))
 head(taxa)
 rownames(samdf) <- samdf$Sample
 head(samdf)
-#
+
 
 # Construct phyloseq object (straightforward from dada2 outputs)
 ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),

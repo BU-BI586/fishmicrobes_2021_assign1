@@ -6,11 +6,25 @@ output: html_document
 ---
 
 
-R version 4.0.3 was used for all analyses.
-
-
 # Introduction
 
+Sea anemone hosting temporarily alters clownfish skin microbiome
+
+Authors: 
+Grace Berry 
+Madison Pacaro 
+Victoria French 
+
+# Version Control 
+
+R version 4.0.3 was used for all analyses.
+
+```{r}
+library(dada2); #packageVersion("dada2"); citation("dada2")
+library(ShortRead); #packageVersion("ShortRead")
+library(ggplot2); #packageVersion("ggplot2")
+library(phyloseq); #packageVersion("phyloseq")
+```
 
 
 # Data Analysis/Methods
@@ -23,7 +37,7 @@ R version 4.0.3 was used for all analyses.
 
 # Reference Database
 
-
+SILVA 
 
 # Conclusion
 
