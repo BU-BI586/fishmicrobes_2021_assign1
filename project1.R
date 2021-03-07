@@ -41,7 +41,7 @@ getwd()
 #setwd("C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles")
 
 #path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1" 
-#path <- "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles"
+path <- "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles"
 path <- "/usr4/bi594/vfrench3/assignment1/fishmicrobes_2021_assign1/fastqfiles"
 fns <- list.files(path)
 #Let's make sure that all of our files are there
@@ -73,8 +73,6 @@ if(!file_test("-d", filt_path)) dir.create(filt_path)
 filtFs <- file.path(filt_path, "filteredF", paste0(sample.names.F, "_F_filt.fastq.gz"))
 filtRs <- file.path(filt_path, "filteredR", paste0(sample.names.R, "_R_filt.fastq.gz"))
 
-#edit these numbers
-#change trim to match primer for our study
 out<- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=250, #set to 250 currently until Sarah responds. I think 250 works for most of the data but their are those weird outliers. 
                      maxN=0, #DADA does not allow Ns
                      maxEE=1, #allow 1 expected errors, where EE = sum(10^(-Q/10)); more conservative, model converges
@@ -101,8 +99,8 @@ plotErrors(errR, nominalQ=TRUE)
 derepFs <- derepFastq(filtFs, verbose=TRUE)
 derepRs <- derepFastq(filtRs, verbose=TRUE)
 # Name the derep-class objects by the sample names
-names.F(derepFs) <- sample.names.F
-names.R(deprepRs) <- sample.names.R
+names(derepFs) <- sample.names.F
+names(derepRs) <- sample.names.R
 
 #infer sequence variants 
 #Must change some of the DADA options b/c original program optomized for ribosomal data, not ITS - from github, "We currently recommend BAND_SIZE=32 for ITS data." leave as default for 16S/18S
@@ -113,8 +111,8 @@ dadaRs <- dada(derepRs, err=errR, multithread=TRUE)
 #now, look at the dada class objects by sample
 #will tell how many 'real' variants in unique input seqs
 #By default, the dada function processes each sample independently, but pooled processing is available with pool=TRUE and that may give better results for low sampling depths at the cost of increased computation time. See our discussion about pooling samples for sample inference. 
-dadaFs[[1:18]]
-dadaRs[[1:18]]
+dadaFs[[1]]
+dadaRs[[1]]
 
 #merge paired ends 
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
@@ -140,7 +138,7 @@ write.csv(seqtab.nochim,file="fishmicrobes_nochim.csv")
 getN <- function(x) sum(getUniques(x))
 track <- cbind(out, sapply(dadaFs, getN), sapply(dadaFs, getN), rowSums(seqtab), rowSums(seqtab.nochim))
 colnames(track) <- c("input", "filtered", "denoised", "merged", "tabled", "nonchim")
-rownames(track) <- sample.names
+rownames(track) <- sample.names #getting error!!!!!!!!!!!
 head(track)
 tail(track)
 
@@ -152,15 +150,28 @@ write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FA
 ##### Assign Taxonomy #######
 ################################
 
+<<<<<<< HEAD
 #assigning ASVs in seqtab.nochim to taxonomy via Silva v132 (most recent version); Silva primary database for 16S 
 taxa <- assignTaxonomy(seqtab.nochim,'fastqfiles/silva_nr_v132_train_set.fa.gz',minBoot=50,multithread=TRUE,tryRC=TRUE,outputBootstraps=FALSE)
 taxa <- addSpecies(taxa,'fastqfiles/silva_species_assignment_v132.fa.gz') #species level assignments  
 
 #write taxa to csv file 
+=======
+taxa <- assignTaxonomy(seqtab.nochim, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_nr99_v138_train_set.fa.gz", multithread=TRUE)
+taxa <- addSpecies(taxa, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_species_assignment_v138.fa.gz")
+taxa.print <- taxa
+rownames(taxa.print) <- NULL
+head(taxa.print)
+#should we use minboot, multithread, etc in line 153??
+
+
+#Obtain a csv file for the taxonomy so that it's easier to map the sequences for the heatmap.
+>>>>>>> f560edcf6102538485d487966a7bba04e2b1d590
 write.csv(taxa, file="taxa.csv",row.name=TRUE,quote=FALSE)
 unname(head(taxa, 30))
 unname(taxa)
 
+<<<<<<< HEAD
 #save reads from sequence table for future analysis 
 saveRDS(seqtab.nochim, file="final_seqtab_nochim.rds")
 saveRDS(taxa, file="final_taxa_blastCorrected.rds")
@@ -184,6 +195,45 @@ ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
                sample_data(samdf), 
                tax_table(taxa))
 ps
+=======
+#Now, save outputs so can come back to the analysis stage at a later point if desired
+saveRDS(seqtab.nochim, file="final_seqtab_nochim.rds")
+saveRDS(taxa, file="final_taxa_blastCorrected.rds")
+
+#If you need to read in previously saved datafiles
+seqtab.nochim <- readRDS("final_seqtab_nochim.rds")
+taxa <- readRDS("final_taxa_blastCorrected.rds")
+head(taxa)
+
+################################
+##### handoff 2 phyloseq #######
+################################
+
+#import dataframe holding sample information
+#have your samples in the same order as the seqtab file in the rows, variables as columns
+samdf<-read.csv("variabletable.csv")
+
+head(samdf)
+head(seqtab.nochim)
+head(taxa)
+rownames(samdf) <- samdf$Sample
+
+# Construct phyloseq object (straightforward from dada2 outputs)
+otu <- otu_table(seqtab.nochim, taxa_are_rows=FALSE)
+head(otu)
+samp_data = sample_data(samdf)
+head(samp_data)
+tax_tab = tax_table(taxa)
+head(tax_tab)
+ps <- phyloseq(otu, 
+               samp_data,
+               tax_table(taxa))
+
+head(tax_table(taxa))
+View()
+ps
+sample_names()
+>>>>>>> f560edcf6102538485d487966a7bba04e2b1d590
 
 #replace sequences with shorter names (correspondence table output below)
 ids<-taxa_names(ps)
@@ -205,6 +255,7 @@ psz <- psmelt(ps.top90)
 write.csv(psz, file="Phyloseqoutputfinal.csv")
 p <- ggplot(psz, aes(x=Sample, y=Abundance, fill=Class))
 p + geom_bar(stat="identity", colour="black")
+<<<<<<< HEAD
 
 #Plot alpha-diversity 
 plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="When")
@@ -218,3 +269,5 @@ plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
 
 
                       
+=======
+>>>>>>> f560edcf6102538485d487966a7bba04e2b1d590
