@@ -255,19 +255,3 @@ psz <- psmelt(ps.top90)
 write.csv(psz, file="Phyloseqoutputfinal.csv")
 p <- ggplot(psz, aes(x=Sample, y=Abundance, fill=Class))
 p + geom_bar(stat="identity", colour="black")
-<<<<<<< HEAD
-
-#Plot alpha-diversity 
-plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="When")
-
-#Bray Curtis 
-#Transform to proportions 
-ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
-ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
-#Plot 
-plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
-
-
-                      
-=======
->>>>>>> f560edcf6102538485d487966a7bba04e2b1d590
