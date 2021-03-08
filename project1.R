@@ -188,12 +188,13 @@ write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FA
 
 #assigning ASVs in seqtab.nochim to taxonomy via Silva v132 (most recent version); Silva primary database for 16S; arguments set at preset
 
-#taxa <- assignTaxonomy(seqtab.nochim,'fastqfiles/silva_nr_v132_train_set.fa.gz',minBoot=50,multithread=TRUE,tryRC=TRUE,outputBootstraps=FALSE)
-# taxa <- addSpecies(taxa,'fastqfiles/silva_species_assignment_v132.fa.gz') #species level assignments  
-
 #write taxa to csv file 
 taxa <- assignTaxonomy(seqtab.nochim, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_nr99_v138_train_set.fa.gz", multithread=TRUE)
 taxa <- addSpecies(taxa, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_species_assignment_v138.fa.gz")
+
+taxa <- assignTaxonomy(seqtab.nochim, "/users/Victoria1/Desktop/Grad School/Eco Gen./fishmicrobes_2021_assignment1/fastqfiles/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
+taxa <- addSpecies(taxa, "/users/Victoria1/Desktop/Grad School/Eco Gen./fishmicrobes_2021_assignment1/fastqfiles/silva_species_assignment_v132.fa.gz", multithread=TRUE)
+
 taxa.print <- taxa
 rownames(taxa.print) <- NULL #this gets rid of all the sequences
 head(taxa) #prints full info, including sequence
