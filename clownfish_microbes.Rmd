@@ -191,7 +191,7 @@ write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FA
 
 ##Assigning Taxonomy
 
-Assigning taxonomy for amplicon sequence variants using the Silva v132 reference database. All parameters were conserved from the database presets.
+Assigning taxonomy for amplicon sequence variants using the Silva v138 reference database. All parameters were conserved from the database presets.
 ```{r}
 taxa <- assignTaxonomy(seqtab.nochim, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_nr99_v138_train_set.fa.gz", multithread=TRUE)
 taxa <- addSpecies(taxa, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_species_assignment_v138.fa.gz")
@@ -299,7 +299,27 @@ bray.curtis
 
 # Reference Database
 
-We used the SILVA v132 (most current version) reference database as sequences were assessed by Illumina sequencing of the 16S rRNA gene (V4 region). Original analysis done on silva v119. 
+Reference database used was Silva SSU taxonomic training data formatted for DADA2 (Silva version 138) as sequences were assessed by Illumina sequencing of the 16S rRNA gene (V4 region). Original analysis done on silva v119. 
+
+Citation: 
+
+@dataset{michael_r_mclaren_2020_3986799,
+  author       = {Michael R. McLaren},
+  title        = {{Silva SSU taxonomic training data formatted for 
+                   DADA2 (Silva version 138)}},
+  month        = aug,
+  year         = 2020,
+  note         = {{These files are intended for use in classifying 
+                   prokaryotic 16S sequencing data and are not
+                   appropriate for classifying eukaryotic ASVs. The
+                   new method implemented within DADA2 for
+                   constructing these files only includes 100
+                   eukaryotic sequences for use as an outgroup.}},
+  publisher    = {Zenodo},
+  version      = 2,
+  doi          = {10.5281/zenodo.3986799},
+  url          = {https://doi.org/10.5281/zenodo.3986799}
+
 
 # Conclusion
 
