@@ -87,31 +87,24 @@ plotQualityProfile(fnRs[10:18])
 #placing trimmed and filtered files in a subdirectory
 filt_path <- file.path(path, "trimmed") #assigning new trimmed folder to a variable 
 if(!file_test("-d", filt_path)) dir.create(filt_path)  #creating trimmed directory 
-filtFs <- file.path(filt_path, "filteredF", paste0(sample.names, "_F_filt.fastq.gz")) #assigning new trimmed forward reads to variable 
-filtRs <- file.path(filt_path, "filteredR", paste0(sample.names.R, "_R_filt.fastq.gz")) #assigning new timmed reverse reads to variable
-#above code might be wrong
-
-#think there is an issue here with using sample.names.F/R?
 filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
 filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
 names(filtFs) <- sample.names
 names(filtRs) <- sample.names
-#go back to double check this ^^^
-
 
 #setting standard filtering parameters for maxN, truncQ=2, rm.phix=TRUE 
-#we set trunclen to be____ because most samples have consistently high quality reads but a few start to taper around cycle 100; 
-#Since both forward and reverse reads, lowest Trunclen could be 125. Dropping too many reads at 125 
-#Trimleft excluded as raw sequences from NCBI contain no primer sequences. Sequences used were: 
+#we set trunclen to be 125 because most samples have consistently high quality reads but a few taper extremely early around cycle 100; 
+#Since we are working with both forward and reverse reads, lowest Trunclen could be 125 in order to merge successfully.
+#Setting trunclen to 125 removes less reads than completely excluding trunclen as an argument. 
+#Trimleft excluded as raw sequences from NCBI contain no primer sequences. Primer Sequences used were: 
 #515F ('GTGYCAGCMGCCGCGGTAA') and 806R ('GGACTACNVGGGTWTCTAAT') for the 16S V4 region according to earth microbiome project. 
-out<- filterAndTrim(fnFs, filtFs, fnRs, filtRs, 
-                    maxN=0, 
-                    maxEE=1, 
-                    truncQ=2,  
-                    rm.phix=TRUE, 
-                    compress=TRUE, multithread=FALSE) 
 
-#messed something up at this point code not working
+out <- filterAndTrim(fnFs, filtFs, truncLen=200,
+                     maxN=0, 
+                     maxEE=1, 
+                     truncQ=2, 
+                     rm.phix=TRUE,
+                     compress=TRUE, multithread=FALSE) 
 
 head(out)
 tail(out)
@@ -124,7 +117,6 @@ errR <- learnErrors(filtRs, multithread=TRUE)
 #estimated error rates (black lines) are good fit to the observed rates (points) and error rates drop with increased quality
 plotErrors(errF, nominalQ=TRUE) #plotting error rates, want to see mostly linear relationships
 plotErrors(errR, nominalQ=TRUE)
-#output: 21367840 total bases in 267098 reads from 18 samples will be used for learning the error rates.
 
 #dereplicating reads - collapsing all reads into unique sequences
 derepFs <- derepFastq(filtFs, verbose=TRUE)
@@ -153,6 +145,7 @@ dadaRs[[1]]
 
 #merge paired ends - here we are merging the forward and reverse reads together to get full denoised sequences
 #we merge by aligning denoised forward reads with reverse-complement of corresponding denoised reverse reads. we then make merged contig sequences
+#Set minOverlap to ___ because of the length 
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
 head(mergers[[1]])
 
@@ -164,7 +157,7 @@ head(mergers)
 #remove chimeras - chimeric sequences are identified and removed
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
-#identified 21 bimeras out of 1857 input sequences
+#identified __ bimeras out of __ input sequences 
 
 sum(seqtab.nochim)/sum(seqtab)
 #chimeras account for only about 1% of the merged sequence reads?
@@ -186,6 +179,7 @@ tail(track)
 
 write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FALSE)
 #this shows raw reads, how many filtered, denoised, etc.
+#final number of reads under nonchim column 
 #could include table of this in paper 
 
 ################################
@@ -194,7 +188,7 @@ write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FA
 
 
 #assigning ASVs in seqtab.nochim to taxonomy via Silva v132 (most recent version); Silva primary database for 16S 
-# taxa <- assignTaxonomy(seqtab.nochim,'fastqfiles/silva_nr_v132_train_set.fa.gz',minBoot=50,multithread=TRUE,tryRC=TRUE,outputBootstraps=FALSE)
+#taxa <- assignTaxonomy(seqtab.nochim,'fastqfiles/silva_nr_v132_train_set.fa.gz',minBoot=50,multithread=TRUE,tryRC=TRUE,outputBootstraps=FALSE)
 # taxa <- addSpecies(taxa,'fastqfiles/silva_species_assignment_v132.fa.gz') #species level assignments  
 
 #write taxa to csv file 
