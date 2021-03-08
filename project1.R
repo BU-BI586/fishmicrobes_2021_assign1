@@ -99,7 +99,7 @@ names(filtRs) <- sample.names
 #Trimleft excluded as raw sequences from NCBI contain no primer sequences. Primer Sequences used were: 
 #515F ('GTGYCAGCMGCCGCGGTAA') and 806R ('GGACTACNVGGGTWTCTAAT') for the 16S V4 region according to earth microbiome project. 
 
-out <- filterAndTrim(fnFs, filtFs, truncLen=200,
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=200,
                      maxN=0, 
                      maxEE=1, 
                      truncQ=2, 
