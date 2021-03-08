@@ -93,13 +93,12 @@ names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 
 #setting standard filtering parameters for maxN, truncQ=2, rm.phix=TRUE 
-#we set trunclen to be 125 because most samples have consistently high quality reads but a few taper extremely early around cycle 100; 
-#Since we are working with both forward and reverse reads, lowest Trunclen could be 125 in order to merge successfully.
-#Setting trunclen to 125 removes less reads than completely excluding trunclen as an argument. 
+#we set trunclen to be 240 because no sample falls below a quality score of 20 after 250 bp. 
+#After trial and error data manipulation, 240 maximizes read output during initial filtering and minimizes presence of bimeras. While still facilitating successful paired end merges. 
 #Trimleft excluded as raw sequences from NCBI contain no primer sequences. Primer Sequences used were: 
 #515F ('GTGYCAGCMGCCGCGGTAA') and 806R ('GGACTACNVGGGTWTCTAAT') for the 16S V4 region according to earth microbiome project. 
 
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=200,
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=240,
                      maxN=0, 
                      maxEE=1, 
                      truncQ=2, 
@@ -160,7 +159,7 @@ dim(seqtab.nochim)
 #identified __ bimeras out of __ input sequences 
 
 sum(seqtab.nochim)/sum(seqtab)
-#chimeras account for only about 1% of the merged sequence reads?
+#chimeras account for only about 1% of the merged sequence reads
 
 write.csv(seqtab,file="fishmicrobes_seqtab.csv")
 write.csv(seqtab.nochim,file="fishmicrobes_nochim.csv")
@@ -187,7 +186,8 @@ write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FA
 ################################
 
 
-#assigning ASVs in seqtab.nochim to taxonomy via Silva v132 (most recent version); Silva primary database for 16S 
+#assigning ASVs in seqtab.nochim to taxonomy via Silva v132 (most recent version); Silva primary database for 16S; arguments set at preset
+
 #taxa <- assignTaxonomy(seqtab.nochim,'fastqfiles/silva_nr_v132_train_set.fa.gz',minBoot=50,multithread=TRUE,tryRC=TRUE,outputBootstraps=FALSE)
 # taxa <- addSpecies(taxa,'fastqfiles/silva_species_assignment_v132.fa.gz') #species level assignments  
 
