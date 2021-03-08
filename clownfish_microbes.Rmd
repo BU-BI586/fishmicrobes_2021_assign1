@@ -8,7 +8,7 @@ output: html_document
 
 # Introduction
 
-Sea anemone hosting temporarily alters clownfish skin microbiome
+Sea anemone hosting temporarily alters clownfish skin microbiome. After analyzing the microbiome of clownfish not exposed to anemones, clownfish associated with anemones, and clownfish after being removed from their associated anemones, it was found that the microbiome of clownfish mucous is significantly different whether they are associated with an anemone. Interestingly, it was also found that a clownfish's mucosal microbiome returns to that of a non-associated clownfish when removed from the associated anemone for a number of weeks.  We analyzed a subset of this data to gain practice with RStudio metabarcoding and to test the replicability of the authors' genomic analysis. We used ___ methods. We found that ___ and that this project was able to be successfully replicated to produce the same results as were found in the original paper.
 
 Authors: 
 Grace Berry 
@@ -19,15 +19,182 @@ Victoria French
 
 R version 4.0.3 was used for all analyses.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(dada2); #packageVersion("dada2"); citation("dada2")
 library(ShortRead); #packageVersion("ShortRead")
 library(ggplot2); #packageVersion("ggplot2")
 library(phyloseq); #packageVersion("phyloseq")
 ```
+```{r, echo=FALSE, results='hide'}
+path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1/fastqfiles"
+fns <- list.files(path)
+fns
+```
+
 
 
 # Data Analysis/Methods
+
+To divide fastq files into matched forward and reversed lists, determined by either a _1 or _2, we first had to ensure fastq files were in the same order. We then removed the .fastq from each file name.
+```{r, results='hide'}
+fastqs <- fns[grepl(".fastq$", fns)]
+fastqs <- sort(fastqs)
+fnFs <- fastqs[grepl("_1", fastqs)]
+fnRs <- fastqs[grepl("_2", fastqs)]
+
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+
+```
+```{r, echo=FALSE, results='hide'}
+fnFs <- file.path(path, fnFs) 
+fnRs <- file.path(path, fnRs)
+fnFs
+fnRs
+```
+
+
+Quality profiles were plotted for forward and reverse reads to determine where to trim them.
+```{r}
+#Forward 1-9
+plotQualityProfile(fnFs[1:9])
+#Forward 10-18
+plotQualityProfile(fnFs[10:18])
+#Reverse 1-9
+plotQualityProfile(fnRs[1:9])
+#Reverse 10-18
+plotQualityProfile(fnRs[10:18])
+```
+
+We then created a new subdirectory for trimmed and filtered files. 
+```{r}
+filt_path <- file.path(path, "trimmed")
+if(!file_test("-d", filt_path)) dir.create(filt_path)
+filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+```
+
+To filter the reads, we set trunclen to 240 because no samples fell below a quality score of 20 after 250 bp. 
+We determined that 240 maximizes the read output during inital filtering and minimizes presence of bimeras while still resulting in successful paired end merges.
+We excluded the filtering parameter 'Trimleft' because our raw data did not contain primer sequences. 
+The primer sequences used were
+
+- 515F ('GTGYCAGCMGCCGCGGTAA')
+
+- 806R ('GGACTACNVGGGTWTCTAAT')
+
+for the 16S V4 region according to earth microbiome project.
+```{r}
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=240,
+                     maxN=0, 
+                     maxEE=1, 
+                     truncQ=2, 
+                     rm.phix=TRUE,
+                     compress=TRUE, multithread=FALSE) 
+```
+```{r}
+head(out)
+tail(out)
+```
+
+DADA2 was utilized to employ a parametric error model to determine the error rate of the amplicon dataset. We kept the standard max consistency of 30 to increase the number of cycles and allow for convergence.
+```{r}
+setDadaOpt(MAX_CONSIST=30)
+errF <- learnErrors(filtFs, multithread=TRUE)
+errR <- learnErrors(filtRs, multithread=TRUE)
+```
+
+We then plotted the found forward and reverse errors to visually confirm our data. The black line represents the estimated error rates, and the points represent the fit of the error rates. We should see a negative linear relationship in error rates, as quality score increases.
+```{r, warning=FALSE, message=FALSE}
+plotErrors(errF, nominalQ=TRUE)
+plotErrors(errR, nominalQ=TRUE)
+```
+
+Reads were dereplicated, collapsing all reads into unique sequences. Then, the dereplicated reads were assigned to sample names.
+```{r, results= 'hide'}
+derepFs <- derepFastq(filtFs, verbose=TRUE)
+derepRs <- derepFastq(filtRs, verbose=TRUE)
+
+names(derepFs) <-sample.names
+names(derepRs) <- sample.names
+```
+
+We used a band size of 16 to infer sequence variants as it is suggested as the default size for Illumina. 
+```{r}
+setDadaOpt(BAND_SIZE=16)
+dadaFs <- dada(derepFs, err=errF, multithread=TRUE)
+dadaRs <- dada(derepRs, err=errR, multithread=TRUE)
+```
+
+To determine how many real variants are within unique input sequences, we looked at the dada class objects by sample.
+Pooled processing for dada is available with the function pool=TRUE, which may provide better results for low sampling depths.
+```{r}
+dadaFs[[1]]
+dadaFs[[5]]
+dadaRs[[1]]
+```
+
+Paired ends from forward and reverse reads were merged to obtain the full sequences. Denoised forward reads were aligned with reverse-compliment corresponding denoised reverse reads.
+```{r}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+head(mergers[[1]])
+```
+
+A sequence table was constructed. This table contains amplicon sequence variants (ASV).
+```{r}
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
+head(mergers)
+```
+
+Chimeric sequences are identified and removed.
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+dim(seqtab.nochim)
+
+sum(seqtab.nochim)/sum(seqtab)
+```
+
+Write cvs file to save the full sequences and sequences with chimeras removed.
+```{r}
+write.csv(seqtab,file="fishmicrobes_seqtab.csv")
+write.csv(seqtab.nochim,file="fishmicrobes_nochim.csv")
+```
+
+##Assigning Taxonomy
+
+Assigning taxonomy for amplicon sequence variants using the Silva v132 reference database. All parameters were conserved from the database presets.
+```{r}
+taxa <- assignTaxonomy(seqtab.nochim, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_nr99_v138_train_set.fa.gz", multithread=TRUE)
+taxa <- addSpecies(taxa, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_species_assignment_v138.fa.gz")
+
+taxa.print <- taxa
+rownames(taxa.print) <- NULL #this gets rid of all the sequences
+head(taxa)
+head(taxa.print)
+```
+
+
+```{r, echo=FALSE, results='hide'}
+write.csv(taxa, file="taxa.csv",row.name=TRUE,quote=FALSE)
+unname(head(taxa, 30))
+unname(taxa)
+```
+```{r, echo=FALSE, results='hide'}
+saveRDS(seqtab.nochim, file="final_seqtab_nochim.rds")
+saveRDS(taxa, file="final_taxa_blastCorrected.rds")
+```
+```{r, echo=FALSE, results='hide'}
+seqtab.nochim <- readRDS("final_seqtab_nochim.rds")
+taxa <- readRDS("final_taxa_blastCorrected.rds")
+head(taxa)
+```
+
+Just need to add Phyloseq section now!
+
+
+
 
 
 
@@ -37,7 +204,7 @@ library(phyloseq); #packageVersion("phyloseq")
 
 # Reference Database
 
-SILVA 
+We used SILVA as our reference database because it was the reference database used in the paper.
 
 # Conclusion
 
