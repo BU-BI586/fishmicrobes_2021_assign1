@@ -235,9 +235,11 @@ colnames(seqtab.nochim) <- ids
 Creating a Barplot to visualize sample colony
 ```{r}
 top90 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:90]
+#isolating top 90 sequences 
 ps.top90 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+#transforming sequence counts to proportions for visualization
 ps.top90 <- prune_taxa(top90, ps.top90)
-
+#removing unwanted (not top90) OTUs (ASVs)
 barplot<- plot_bar(ps.top90, x="Sample", fill="Class") 
 ```
 
@@ -260,7 +262,7 @@ Looking at Bray Curtis dissimilarities to find if association with anemone has a
 
 ```{r}
 ord.nmds.bray <- ordinate(ps.top90, method="NMDS", distance="bray")
-plot_ordination(ps.top90, ord.nmds.bray, color="When", title="Bray NMDS")
+plot_ordination(ps.top90, ord.nmds.bray, color='color', title="Bray NMDS")
 
 ```
 
@@ -269,6 +271,7 @@ plot_ordination(ps.top90, ord.nmds.bray, color="When", title="Bray NMDS")
 
 ```{r}
 barplot
+p
 ```
 
 

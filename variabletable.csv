@@ -1,5 +1,5 @@
 Sample,Sample Type,color
-SRR6945095,Water,
+SRR6945095,Water,5
 SRR6945102,Non-Hosting (Week 1),1
 SRR6945105,Pre-Hosting (Week 1),2
 SRR6945110,Non-Hosting (Week 7),1
@@ -8,9 +8,9 @@ SRR6945112,Non-Hosting (Week 8),1
 SRR6945114,Non-Hosting (Week 4),1
 SRR6945122,Non-Hosting (Week 3),1
 SRR6945128,Hosting (Week 3),3
-SRR6945144,Anemone
-SRR6945145,Anemone
-SRR6945155,Water
+SRR6945144,Anemone,6
+SRR6945145,Anemone,6
+SRR6945155,Water,5
 SRR6945159,Post-Hosting (Week 7),4
 SRR6945160,Post-Hosting (Week 8),4
 SRR6945161,Hosting (Week 5),3
