@@ -292,10 +292,17 @@ bray.curtis <-plot_ordination(ps.top90, ord.nmds.bray, color ='color', title="Br
 
 ```{r}
 barplot
+```
+ 
+```{r}
 p + geom_bar(stat="identity", colour="black")
+```
+Figure 1: Representation of proportional abundance of taxonomic groups within clownfish, anemone and water column microbiomes. Treatments categories are represented in the following format; IntialNumber. Where initial is indicating treatment (A-Anemone, H-Hosting Clownfish, NH-Non-hosting Clownfish, PH- Post-hosting Clownfish, WC-Water Column) and number indicates either week (in the case of clownfish) or individual (as for anemone and water column) samples. 
+
+```{r}
 bray.curtis
 ```
-
+Figure 2: Relatedness of Anemone (A), Clownfish (NH,H,PH) and the water column (W) microbiomes according to NMDS analysis based on Bray-Curtis dissimilarities. 
 
 # Reference Database
 
