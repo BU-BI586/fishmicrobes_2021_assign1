@@ -165,11 +165,29 @@ sum(seqtab.nochim)/sum(seqtab)
 #chimeras account for only about ~1% of the merged sequence reads
 ```
 
-Write cvs file to save the full sequences and sequences with chimeras removed.This table shows raw reads, how many filtered, denoised, etc.The final number of reads under nonchim column. You could include table of this in paper 
+Write cvs file to save the full sequences and sequences with chimeras removed.
 ```{r}
 write.csv(seqtab,file="fishmicrobes_seqtab.csv")
 write.csv(seqtab.nochim,file="fishmicrobes_nochim.csv")
 ```
+
+##Tracking Read Stats
+
+```{r}
+#here we are looking at number of reads that made it through each step in pipeline
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaFs, getN), rowSums(seqtab), rowSums(seqtab.nochim))
+colnames(track) <- c("input", "filtered", "denoised", "merged", "tabled", "nonchim")
+rownames(track) <- sample.names 
+head(track)
+tail(track)
+
+write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FALSE)
+#this shows raw reads, how many filtered, denoised, etc.
+#final number of reads under nonchim column 
+#could include table of this in paper 
+```
+
 
 ##Assigning Taxonomy
 
