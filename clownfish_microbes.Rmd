@@ -29,8 +29,10 @@ library(ShortRead); #packageVersion("ShortRead")
 library(ggplot2); #packageVersion("ggplot2")
 library(phyloseq); #packageVersion("phyloseq")
 ```
+
 ```{r, echo=FALSE, results='hide'}
-path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1/fastqfiles"
+#path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1/fastqfiles"
+path<-"/Users/Victoria1/Desktop/Grad School/Eco Gen./fishmicrobes_2021_assignment1/fastqfiles"
 fns <- list.files(path)
 fns
 ```
@@ -49,6 +51,7 @@ fnRs <- fastqs[grepl("_2", fastqs)]
 sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 
 ```
+
 ```{r, echo=FALSE, results='hide'}
 #Setting full path to forward and reverse reads 
 fnFs <- file.path(path, fnFs) 
@@ -254,7 +257,7 @@ Obtain a csv file for the phyloseq data. Will give you the abundances for each s
 ```{r}
 psz <- psmelt(ps.top90)
 write.csv(psz, file="Phyloseqoutputfinal.csv")
-p <- ggplot(psz, aes(x=Sample, y=Abundance, fill=Class))
+p <- ggplot(psz, aes(x=Treatment, y=Abundance, fill=Class))
 p + geom_bar(stat="identity", colour="black")
 ```
 
@@ -262,7 +265,7 @@ Looking at Bray Curtis dissimilarities to find if association with anemone has a
 
 ```{r}
 ord.nmds.bray <- ordinate(ps.top90, method="NMDS", distance="bray")
-plot_ordination(ps.top90, ord.nmds.bray, color='color', title="Bray NMDS")
+bray.curtis <-plot_ordination(ps.top90, ord.nmds.bray, color ='color', title="Bray NMDS")
 
 ```
 
@@ -271,7 +274,8 @@ plot_ordination(ps.top90, ord.nmds.bray, color='color', title="Bray NMDS")
 
 ```{r}
 barplot
-p
+p + geom_bar(stat="identity", colour="black")
+bray.curtis
 ```
 
 

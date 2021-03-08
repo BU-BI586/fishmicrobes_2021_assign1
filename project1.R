@@ -254,7 +254,8 @@ plot_bar(ps.top90, x="Sample", fill="Class")
 
 #visusalize via counts rather than abundances:
 plot_bar(ps, x = "sample", fill= "Class") #+ facet_wrap("tank")
-#
+
+
 #Obtain a csv file for the phyloseq data. Will give you the abundances for each sample and class. Useful for constructing the heatmap. Also, enables you to use ggplot, and construct more aesthetically pleasing plot.
 psz <- psmelt(ps.top90)
 write.csv(psz, file="Phyloseqoutputfinal.csv")

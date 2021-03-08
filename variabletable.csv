@@ -1,19 +1,19 @@
-Sample,Sample Type,color
-SRR6945095,Water,5
-SRR6945102,Non-Hosting (Week 1),1
-SRR6945105,Pre-Hosting (Week 1),2
-SRR6945110,Non-Hosting (Week 7),1
-SRR6945111,Non-Hosting (Week 5),1
-SRR6945112,Non-Hosting (Week 8),1
-SRR6945114,Non-Hosting (Week 4),1
-SRR6945122,Non-Hosting (Week 3),1
-SRR6945128,Hosting (Week 3),3
-SRR6945144,Anemone,6
-SRR6945145,Anemone,6
-SRR6945155,Water,5
-SRR6945159,Post-Hosting (Week 7),4
-SRR6945160,Post-Hosting (Week 8),4
-SRR6945161,Hosting (Week 5),3
-SRR6945162,Hosting (Week 4),3
-SRR6945170,Non-Hosting (Week 2),1
-SRR6945173,Hosting (Week 2),3
+Sample,Sample Type,color,Treatment
+SRR6945095,Water,W,WC1
+SRR6945102,Non-Hosting (Week 1),NH,NH1
+SRR6945105,Pre-Hosting (Week 1),PH,PH11
+SRR6945110,Non-Hosting (Week 7),NH,NH7
+SRR6945111,Non-Hosting (Week 5),NH,NH5
+SRR6945112,Non-Hosting (Week 8),NH,NH8
+SRR6945114,Non-Hosting (Week 4),NH,NH4
+SRR6945122,Non-Hosting (Week 3),NH,NH3
+SRR6945128,Hosting (Week 3),H,H3
+SRR6945144,Anemone,A,A1
+SRR6945145,Anemone,A,A2
+SRR6945155,Water,W,WC2
+SRR6945159,Post-Hosting (Week 7),PH,PH7
+SRR6945160,Post-Hosting (Week 8),PH,PH8
+SRR6945161,Hosting (Week 5),H,H5
+SRR6945162,Hosting (Week 4),H,H4
+SRR6945170,Non-Hosting (Week 2),NH,NH2
+SRR6945173,Hosting (Week 2),H,H2
