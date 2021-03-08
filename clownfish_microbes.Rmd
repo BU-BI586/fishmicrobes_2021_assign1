@@ -159,9 +159,10 @@ seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE
 dim(seqtab.nochim)
 
 sum(seqtab.nochim)/sum(seqtab)
+#chimeras account for only about ~1% of the merged sequence reads
 ```
 
-Write cvs file to save the full sequences and sequences with chimeras removed.
+Write cvs file to save the full sequences and sequences with chimeras removed.This table shows raw reads, how many filtered, denoised, etc.The final number of reads under nonchim column. You could include table of this in paper 
 ```{r}
 write.csv(seqtab,file="fishmicrobes_seqtab.csv")
 write.csv(seqtab.nochim,file="fishmicrobes_nochim.csv")
@@ -176,31 +177,84 @@ taxa <- addSpecies(taxa, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assig
 
 taxa.print <- taxa
 rownames(taxa.print) <- NULL #this gets rid of all the sequences
-head(taxa)
-head(taxa.print)
+head(taxa) #prints full info, including sequence
+head(taxa.print) #this just prints taxonomy
 ```
 
+Obtain a csv file for the taxonomy so that it's easier to map the sequences for the heatmap.
 
 ```{r, echo=FALSE, results='hide'}
 write.csv(taxa, file="taxa.csv",row.name=TRUE,quote=FALSE)
 unname(head(taxa, 30))
 unname(taxa)
 ```
+
+Now, save outputs so can come back to the analysis stage at a later point if desired
 ```{r, echo=FALSE, results='hide'}
 saveRDS(seqtab.nochim, file="final_seqtab_nochim.rds")
 saveRDS(taxa, file="final_taxa_blastCorrected.rds")
 ```
+
+If you need to read in previously saved datafiles
 ```{r, echo=FALSE, results='hide'}
 seqtab.nochim <- readRDS("final_seqtab_nochim.rds")
 taxa <- readRDS("final_taxa_blastCorrected.rds")
 head(taxa)
 ```
 
-Just need to add Phyloseq section now!
+Import dataframe holding sample information
 
+Before doing phyloseq, make sure sample names in the variable table have the same names as the sample names in the taxa and seqtab.nochim files. Have your samples in the same order as the seqtab file in the rows, variables as columns. 
 
+```{r}
+samdf<-read.csv("variabletable.csv")
 
+head(samdf)
+head(otu_table(seqtab.nochim, FALSE))
+head(taxa)
+rownames(samdf) <- samdf$Sample
+head(samdf)
+```
 
+Construct phyloseq object (straightforward from dada2 outputs)
+
+```{r}
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
+               sample_data(samdf),
+               tax_table(taxa))
+ps
+```
+
+Replacing sequences with names that correspond with table output
+```{r}
+ids<-taxa_names(ps)
+ids <- paste0("sq",seq(1, length(colnames(seqtab.nochim))))
+colnames(seqtab.nochim) <- ids
+```
+
+Creating a Barplot to visualize sample colony
+```{r}
+top90 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:90]
+ps.top90 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top90 <- prune_taxa(top90, ps.top90)
+
+plot_bar(ps.top90, x="Sample", fill="Class") 
+```
+
+Visusalize via counts rather than abundances:
+
+```{r}
+plot_bar(ps, x = "sample", fill= "Class") #+ facet_wrap("tank")
+```
+
+Obtain a csv file for the phyloseq data. Will give you the abundances for each sample and class. Useful for constructing the heatmap. Also, enables you to use ggplot, and construct more aesthetically pleasing plot.
+
+```{r}
+psz <- psmelt(ps.top90)
+write.csv(psz, file="Phyloseqoutputfinal.csv")
+p <- ggplot(psz, aes(x=Sample, y=Abundance, fill=Class))
+p + geom_bar(stat="identity", colour="black")
+```
 
 
 # Figures
