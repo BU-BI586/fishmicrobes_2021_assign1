@@ -238,13 +238,13 @@ top90 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:90]
 ps.top90 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top90 <- prune_taxa(top90, ps.top90)
 
-plot_bar(ps.top90, x="Sample", fill="Class") 
+barplot<- plot_bar(ps.top90, x="Sample", fill="Class") 
 ```
 
 Visusalize via counts rather than abundances:
 
 ```{r}
-plot_bar(ps, x = "sample", fill= "Class") #+ facet_wrap("tank")
+barplot.count <- plot_bar(ps, x ="Sample", fill= "Class") #+ facet_wrap("tank")
 ```
 
 Obtain a csv file for the phyloseq data. Will give you the abundances for each sample and class. Useful for constructing the heatmap. Also, enables you to use ggplot, and construct more aesthetically pleasing plot.
@@ -256,10 +256,20 @@ p <- ggplot(psz, aes(x=Sample, y=Abundance, fill=Class))
 p + geom_bar(stat="identity", colour="black")
 ```
 
+Looking at Bray Curtis dissimilarities to find if association with anemone has a significant difference on hosting vs. nonhosting clownfish microbiomes. 
+
+```{r}
+ord.nmds.bray <- ordinate(ps.top90, method="NMDS", distance="bray")
+plot_ordination(ps.top90, ord.nmds.bray, color="When", title="Bray NMDS")
+
+```
+
 
 # Figures
 
-
+```{r}
+barplot
+```
 
 
 # Reference Database
