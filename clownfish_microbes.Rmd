@@ -8,7 +8,9 @@ output: html_document
 
 # Introduction
 
-Sea anemone hosting temporarily alters clownfish skin microbiome. After analyzing the microbiome of clownfish not exposed to anemones, clownfish associated with anemones, and clownfish after being removed from their associated anemones, it was found that the microbiome of clownfish mucous is significantly different whether they are associated with an anemone. Interestingly, it was also found that a clownfish's mucosal microbiome returns to that of a non-associated clownfish when removed from the associated anemone for a number of weeks.  We analyzed a subset of this data to gain practice with RStudio metabarcoding and to test the replicability of the authors' genomic analysis. We used ___ methods. We found that ___ and that this project was able to be successfully replicated to produce the same results as were found in the original paper.
+Sea anemone hosting temporarily alters clownfish skin microbiome. After analyzing the microbiome of clownfish not exposed to anemones, clownfish associated with anemones, and clownfish after being removed from their associated anemones, it was found that the microbiome of clownfish mucous is significantly different between hosting and non-hosting individuals. Interestingly, it was also found that a hosting clownfish's mucosal microbiome returns to that of a non-associated clownfish when removed from the associated anemone for a number of weeks (Pratte et al, 2018).  We analyzed a subset of the data presented by Pratte et al, to gain practice with RStudio metabarcoding and to test the replicability of the authors' genomic analysis. We used the DADA2 pipeline to filter and analyze Illumina raw sequence reads, to assign taxonomic classification via the SILVA v138 reference database of anemone, clownfish and the associated water column. We utilized phyloseq to visualize this data and construct an ordinate plot based on Bray-Curtis dissimilarity to identify relatedness between sample microbiomes. We found that the microbial community was similar across analyses but lost specificity with the reduction of sample sizes in this replication. The differences found in taxonomic assignment contributed to inconclusive results when analyzing microbiome relatedness. Overall, this project was able to successfully replicate methods of original analyses but was unable to produce the same results as were found in the original paper.
+
+Pratte ZA, Patin NV, McWhirt ME, Caughman AM, Parris DJ, Stewart FJ (2018) Association with a sea anemone alters the skin microbiome of clownfish. Coral Reefs 37:1119-1125
 
 Authors: 
 Grace Berry 
@@ -264,7 +266,7 @@ ps.top90 <- prune_taxa(top90, ps.top90)
 barplot<- plot_bar(ps.top90, x="Sample", fill="Class") 
 ```
 
-Visusalize via counts rather than abundances:
+Visualize via counts rather than abundances:
 
 ```{r}
 barplot.count <- plot_bar(ps, x ="Sample", fill= "Class") #+ facet_wrap("tank")
