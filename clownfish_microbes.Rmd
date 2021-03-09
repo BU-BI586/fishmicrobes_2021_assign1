@@ -12,17 +12,16 @@ Sea anemone hosting temporarily alters clownfish skin microbiome. After analyzin
 
 Pratte ZA, Patin NV, McWhirt ME, Caughman AM, Parris DJ, Stewart FJ (2018) Association with a sea anemone alters the skin microbiome of clownfish. Coral Reefs 37:1119-1125
 
-Authors: 
-Grace Berry 
-Madison Pacaro 
-Victoria French 
-
 # Version Control 
 
 R version 4.0.3 was used for all analyses.
+
 dada2 package version 1.18.0
+
 ShortRead package version 1.48.0
+
 ggplot2 package version 3.3.3
+
 phyloseq package version 1.34.0
 
 ```{r, warning=FALSE, message=FALSE}
@@ -32,16 +31,14 @@ library(ggplot2); #packageVersion("ggplot2")
 library(phyloseq); #packageVersion("phyloseq")
 ```
 
-```{r, echo=FALSE, results='hide'}
-#path <- "/Users/gracebeery/Desktop/BI586/fishmicrobes_2021_assign1/fastqfiles"
-path<-"/Users/Victoria1/Desktop/Grad School/Eco Gen./fishmicrobes_2021_assignment1/fastqfiles"
+# Data Analysis & Methods
+
+First we designated a path to the fastq files we will be analyzing.
+```{r, results='hide'}
+path <-"C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/fastqfiles"
 fns <- list.files(path)
 fns
 ```
-
-
-
-# Data Analysis/Methods
 
 To divide fastq files into matched forward and reversed lists, determined by either a _1 or _2, we first had to ensure fastq files were in the same order. We then removed the .fastq from each file name.
 ```{r, results='hide'}
@@ -54,16 +51,15 @@ sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 
 ```
 
-```{r, echo=FALSE, results='hide'}
-#Setting full path to forward and reverse reads 
+We then set the full path to our forward and reverse reads.
+```{r, results='hide'}
 fnFs <- file.path(path, fnFs) 
 fnRs <- file.path(path, fnRs)
 fnFs
 fnRs
 ```
 
-
-Quality profiles were plotted for forward and reverse reads to determine where to trim them.
+Quality profiles were then plotted for forward and reverse reads to determine where to trim them.
 ```{r}
 #Forward 1-9
 plotQualityProfile(fnFs[1:9])
@@ -86,6 +82,7 @@ names(filtRs) <- sample.names
 ```
 
 To filter the reads, we set trunclen to 240 because, despite some samples falling off extremely early (around cycle 100) no samples fell below a quality score of 20 after 250 bp.  
+
 We determined that 240 maximizes the read output during inital filtering and minimizes presence of bimeras while still resulting in successful paired end merges.
 We excluded the filtering parameter 'Trimleft' because our raw data did not contain primer sequences. 
 The primer sequences used were
@@ -108,14 +105,14 @@ head(out)
 tail(out)
 ```
 
-DADA2 was utilized to employ a parametric error model to determine the error rate of the amplicon dataset. We kept the standard max consistency of 30 to increase the number of cycles and allow for convergence.
+DADA2 was then utilized to employ a parametric error model to determine the error rate of the amplicon dataset. We kept the standard max consistency of 30 to increase the number of cycles and allow for convergence.
 ```{r}
 setDadaOpt(MAX_CONSIST=30)
 errF <- learnErrors(filtFs, multithread=TRUE)
 errR <- learnErrors(filtRs, multithread=TRUE)
 ```
 
-We then plotted the found forward and reverse errors to visually confirm our data. The black line represents the estimated error rates, and the points represent the fit of the error rates. We should see a negative linear relationship in error rates, as quality score increases.
+We plotted the found forward and reverse errors to visually confirm our data. The black line represents the estimated error rates, and the points represent the fit of the error rates. We should see a negative linear relationship in error rates, as quality score increases.
 ```{r, warning=FALSE, message=FALSE}
 plotErrors(errF, nominalQ=TRUE)
 plotErrors(errR, nominalQ=TRUE)
@@ -123,8 +120,8 @@ plotErrors(errR, nominalQ=TRUE)
 
 Reads were dereplicated, collapsing all reads into unique sequences. Then, the dereplicated reads were assigned to sample names.
 ```{r, results= 'hide'}
-derepFs <- derepFastq(filtFs, verbose=TRUE)
-derepRs <- derepFastq(filtRs, verbose=TRUE)
+derepFs <- derepFastq(filtFs, verbose=FALSE)
+derepRs <- derepFastq(filtRs, verbose=FALSE)
 
 names(derepFs) <-sample.names
 names(derepRs) <- sample.names
@@ -141,24 +138,22 @@ To determine how many real variants are within unique input sequences, we looked
 Pooled processing for dada is available with the function pool=TRUE, which may provide better results for low sampling depths.
 ```{r}
 dadaFs[[1]]
-dadaFs[[5]]
 dadaRs[[1]]
 ```
 
 Paired ends from forward and reverse reads were merged to obtain the full sequences. Denoised forward reads were aligned with reverse-compliment corresponding denoised reverse reads.
-```{r}
-mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+```{r, results='hide'}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=FALSE)
 head(mergers[[1]])
 ```
 
-A sequence table was constructed. This table contains amplicon sequence variants (ASV).
+We then constructed a sequence table. This table contains amplicon sequence variants (ASV).
 ```{r}
 seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
-head(mergers)
 ```
 
-Chimeric sequences are identified and removed.
+We then identified and removed chimeric sequences in our data.
 ```{r}
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
@@ -167,16 +162,17 @@ sum(seqtab.nochim)/sum(seqtab)
 #chimeras account for only about ~1% of the merged sequence reads
 ```
 
-Write cvs file to save the full sequences and sequences with chimeras removed.
+We created a csv file to save the full sequences and sequences with chimeras removed.
 ```{r}
 write.csv(seqtab,file="fishmicrobes_seqtab.csv")
 write.csv(seqtab.nochim,file="fishmicrobes_nochim.csv")
 ```
 
-##Tracking Read Stats
+**Tracking Read Stats**
+
+Here, we are looking at the number of reads that made it through each step in the pipeline. We then created a csv table that displays the raw reads, how many reads were filtered, denoised, etc. The final number of reads is located under the nonchim column.
 
 ```{r}
-#here we are looking at number of reads that made it through each step in pipeline
 getN <- function(x) sum(getUniques(x))
 track <- cbind(out, sapply(dadaFs, getN), sapply(dadaFs, getN), rowSums(seqtab), rowSums(seqtab.nochim))
 colnames(track) <- c("input", "filtered", "denoised", "merged", "tabled", "nonchim")
@@ -185,61 +181,55 @@ head(track)
 tail(track)
 
 write.csv(track,file="ReadFilterStats_AllData_final.csv",row.names=TRUE,quote=FALSE)
-#this shows raw reads, how many filtered, denoised, etc.
-#final number of reads under nonchim column 
-#could include table of this in paper 
 ```
 
 
-##Assigning Taxonomy
+# Assigning Taxonomy
 
-Assigning taxonomy for amplicon sequence variants using the Silva v138 reference database. All parameters were conserved from the database presets.
-```{r}
+We assigned taxonomy for amplicon sequence variants using the Silva v138 reference database. All parameters were conserved from the database presets.
+```{r, results='hide'}
 taxa <- assignTaxonomy(seqtab.nochim, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_nr99_v138_train_set.fa.gz", multithread=TRUE)
 taxa <- addSpecies(taxa, "C:/Users/Maddy/Documents/BI586/fishmicrobes_2021_assign1/silva_species_assignment_v138.fa.gz")
 
 taxa.print <- taxa
 rownames(taxa.print) <- NULL #this gets rid of all the sequences
-head(taxa) #prints full info, including sequence
+#head(taxa) #prints full info, including sequence
 head(taxa.print) #this just prints taxonomy
 ```
 
-Obtain a csv file for the taxonomy so that it's easier to map the sequences for the heatmap.
+We then created a csv file for the taxonomy so that it's easier to map the sequences for the heatmap.
 
-```{r, echo=FALSE, results='hide'}
+```{r, results='hide'}
 write.csv(taxa, file="taxa.csv",row.name=TRUE,quote=FALSE)
 unname(head(taxa, 30))
 unname(taxa)
 ```
 
-Now, save outputs so can come back to the analysis stage at a later point if desired
-```{r, echo=FALSE, results='hide'}
+Then, we saved our outputs so we can come back to the analysis stage at a later point if desired.
+```{r, results='hide'}
 saveRDS(seqtab.nochim, file="final_seqtab_nochim.rds")
 saveRDS(taxa, file="final_taxa_blastCorrected.rds")
 ```
 
-If you need to read in previously saved datafiles
-```{r, echo=FALSE, results='hide'}
+Here is how we can read in previously saved datafiles to avoid re-running the large datasets above.
+```{r, results='hide'}
 seqtab.nochim <- readRDS("final_seqtab_nochim.rds")
 taxa <- readRDS("final_taxa_blastCorrected.rds")
-head(taxa)
+#head(taxa)
 ```
 
-Import dataframe holding sample information
-
-Before doing phyloseq, make sure sample names in the variable table have the same names as the sample names in the taxa and seqtab.nochim files. Have your samples in the same order as the seqtab file in the rows, variables as columns. 
+We then imported our dataframe containing sample information. Before running this code, we made sure that sample names in the variable table had the same names as the sample names in the taxa and seqtab.nochim files. Samples should also be in the same order as the seqtab file in the rows, and variables as columns. 
 
 ```{r}
 samdf<-read.csv("variabletable.csv")
 
 head(samdf)
-head(otu_table(seqtab.nochim, FALSE))
-head(taxa)
+#head(otu_table(seqtab.nochim, FALSE))
+#head(taxa)
 rownames(samdf) <- samdf$Sample
-head(samdf)
 ```
 
-Construct phyloseq object (straightforward from dada2 outputs)
+We then constructed the phyloseq object.
 
 ```{r}
 ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
@@ -248,15 +238,15 @@ ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
 ps
 ```
 
-Replacing sequences with names that correspond with table output
+We replaced sequences with names that correspond with the table output.
 ```{r}
 ids<-taxa_names(ps)
 ids <- paste0("sq",seq(1, length(colnames(seqtab.nochim))))
 colnames(seqtab.nochim) <- ids
 ```
 
-Creating a Barplot to visualize sample colony
-```{r}
+Then we created a Barplot to visualize sample microbe colonies.
+```{r, warning=FALSE, message=FALSE}
 top90 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:90]
 #isolating top 90 sequences 
 ps.top90 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
@@ -266,22 +256,22 @@ ps.top90 <- prune_taxa(top90, ps.top90)
 barplot<- plot_bar(ps.top90, x="Sample", fill="Class") 
 ```
 
-Visualize via counts rather than abundances:
+To visualize counts rather than abundances:
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 barplot.count <- plot_bar(ps, x ="Sample", fill= "Class") #+ facet_wrap("tank")
 ```
 
-Obtain a csv file for the phyloseq data. Will give you the abundances for each sample and class. Useful for constructing the heatmap. Also, enables you to use ggplot, and construct more aesthetically pleasing plot.
+We then created a csv file for the phyloseq data. This will give the abundances for each sample and class and is useful for constructing the heatmap. Also, it enables you to use ggplot, and construct more aesthetically pleasing plots.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 psz <- psmelt(ps.top90)
 write.csv(psz, file="Phyloseqoutputfinal.csv")
 p <- ggplot(psz, aes(x=Treatment, y=Abundance, fill=Class))
 p + geom_bar(stat="identity", colour="black")
 ```
 
-Looking at Bray Curtis dissimilarities to find if association with anemone has a significant difference on hosting vs. nonhosting clownfish microbiomes. 
+Here we are looking at Bray Curtis dissimilarities to find if association with anemone has a significant difference on hosting vs. nonhosting clownfish microbiomes. 
 
 ```{r}
 ord.nmds.bray <- ordinate(ps.top90, method="NMDS", distance="bray")
@@ -293,17 +283,15 @@ bray.curtis <-plot_ordination(ps.top90, ord.nmds.bray, color ='color', title="Br
 # Figures
 
 ```{r}
-barplot
-```
- 
-```{r}
 p + geom_bar(stat="identity", colour="black")
 ```
+
 Figure 1: Representation of proportional abundance of taxonomic groups within clownfish, anemone and water column microbiomes. Treatments categories are represented in the following format; IntialNumber. Where initial is indicating treatment (A-Anemone, H-Hosting Clownfish, NH-Non-hosting Clownfish, PH- Post-hosting Clownfish, WC-Water Column) and number indicates either week (in the case of clownfish) or individual (as for anemone and water column) samples. 
 
 ```{r}
 bray.curtis
 ```
+
 Figure 2: Relatedness of Anemone (A), Clownfish (NH,H,PH) and the water column (W) microbiomes according to NMDS analysis based on Bray-Curtis dissimilarities. 
 
 # Reference Database
